@@ -17,6 +17,8 @@ namespace GradutionProject.Controllers
 
         int tokenExp = 3600 * 24 * 30;
 
+        public MainVM mainData;
+
         public HomeController(MyContext context)
         {
             _context = context;
@@ -26,14 +28,89 @@ namespace GradutionProject.Controllers
         {
             HttpContext.Session.Clear();
 
-            Response.Cookies.Delete("ruiz-Worktime-Access-Token");
+            Response.Cookies.Delete("Graduation-Access-Token");
 
             return RedirectToAction("Login", "Home");
         }
 
+        [HttpPost]
+        public ActionResult Update(MainVM mainVM)
+        {
+            // Assuming you have a method to update the database with the selected courses
+            UpdateCourses(mainVM.CourseStatusVMList);
+
+            // Redirect to another action or view after updating the database
+            return RedirectToAction("Index");
+        }
+
+        private void UpdateCourses(List<CourseStatusVM> courseStatusList)
+        {
+            int userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            // Get the records to delete based on the condition
+            var recordsToDelete = _context.CourseStatusList.Where(x => x.UserId == userId);
+
+            // Remove the records from the context
+            _context.CourseStatusList.RemoveRange(recordsToDelete);
+
+            // Save changes to the database
+            _context.SaveChanges();
+
+            // Iterate through the submitted course status list and update the database
+            foreach (var courseStatus in courseStatusList)
+            {
+                if (courseStatus.IsPass)
+                {
+                    CourseStatus item = new CourseStatus();
+
+                    item.UserId = userId;
+                    item.CourseId = courseStatus.CourseId;
+
+                    _context.CourseStatusList.Add(item);
+                }
+            }
+
+            // Save changes to the database
+            _context.SaveChanges();
+
+        }
+
         public IActionResult Index()
         {
-            return View();
+            MainVM mainData = new MainVM();
+
+            int userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var user = _context.Users.Where(x => x.Id == userId).FirstOrDefault();
+
+            var courseStatusList = _context.CourseStatusList.ToList();
+
+            foreach (var item in _context.Courses)
+            {
+                if (item.MajorId == user.MajorId)
+                {
+                    CourseStatusVM tempItem = new CourseStatusVM();
+
+                    tempItem.CourseId = item.Id;
+                    tempItem.UserId = userId;
+                    tempItem.CourseName = item.CourseName;
+
+                    bool flag = courseStatusList.Any(x => x.UserId == userId && x.CourseId == item.Id);
+
+                    tempItem.IsPass = flag;
+
+                    mainData.CourseStatusVMList.Add(tempItem);
+                }
+            }
+
+            mainData.StatusData = new StatusVM();
+
+            mainData.StatusData.TotalCourse = mainData.CourseStatusVMList.Count();
+            mainData.StatusData.PassedCourse = mainData.CourseStatusVMList.Where(x => x.IsPass == true).Count();
+            mainData.StatusData.RemainCourse = mainData.CourseStatusVMList.Where(x => x.IsPass == false).Count();
+            mainData.StatusData.PassPercent = (double)mainData.StatusData.PassedCourse / mainData.StatusData.TotalCourse * 100;
+
+            return View(mainData);
         }
 
         [HttpPost]
@@ -71,9 +148,9 @@ namespace GradutionProject.Controllers
                         encryptingCredentials: new EncryptingCredentials(authSigningKey, JwtConstants.DirectKeyUseAlg, SecurityAlgorithms.Aes256CbcHmacSha512));
 
                     Response.Cookies.Append(
-                        "ruiz-Worktime-Access-Token",
+                        "Graduation-Access-Token",
                          new JwtSecurityTokenHandler().WriteToken(token),
-                         new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict }
+                         new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict, Path = "/" }
                     );
                     return RedirectToAction("Index", "Home");
                 }
@@ -140,7 +217,7 @@ namespace GradutionProject.Controllers
                     encryptingCredentials: new EncryptingCredentials(authSigningKey, JwtConstants.DirectKeyUseAlg, SecurityAlgorithms.Aes256CbcHmacSha512));
 
                 Response.Cookies.Append(
-                    "ruiz-Worktime-Access-Token",
+                    "Graduation-Access-Token",
                      new JwtSecurityTokenHandler().WriteToken(token),
                      new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict }
                 );

@@ -1,9 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GradutionProject.Models
 {
+    [Table("Users")] // Move the Table attribute here
     public class User
     {
+        public User()
+        {
+        }
+
         [Key]
         public int Id { get; set; }
 

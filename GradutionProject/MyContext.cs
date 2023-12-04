@@ -5,7 +5,7 @@ namespace GradutionProject
 {
     public class MyContext:DbContext
     {
-       
+        
         public MyContext(DbContextOptions<MyContext> Option) : base(Option)
         {
 
@@ -14,7 +14,7 @@ namespace GradutionProject
 
         public virtual DbSet<Course> Courses { get; set; }  
         public virtual DbSet<Major> Majors { get; set; }
-
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<CourseStatus> CourseStatusList { get; set; }
     }
 }

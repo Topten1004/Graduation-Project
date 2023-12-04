@@ -1,4 +1,63 @@
-﻿@{
+﻿@model GradutionProject.ViewModel.MainVM
+@{
     ViewData["Title"] = "Index";
     var rurl = (string)ViewData["returnUrl"];
 }
+
+<table class="table">
+    <thead>
+        <tr style="color:white">
+            <th>
+                Passed courses
+            </th>
+            <th>
+                Non-passed courses
+            </th>
+            <th>
+                Progress rate
+            </th>
+            <th>
+                Total number of courses
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => Model.StatusData.PassedCourse)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => Model.StatusData.RemainCourse)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => Model.StatusData.PassPercent)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => Model.StatusData.TotalCourse)
+            </td>
+        </tr>
+    </tbody>
+</table>
+@using (Html.BeginForm("Update", "Home", FormMethod.Post))
+{
+    <fieldset>
+
+        <div>
+            <h4>Course Status List</h4>
+            @for (int i = 0; i < Model.CourseStatusVMList.Count; i++)
+            {
+                var courseStatus = Model.CourseStatusVMList[i];
+                <div>
+                    @Html.CheckBoxFor(model => Model.CourseStatusVMList[i].IsPass)
+                    @Html.LabelFor(model => Model.CourseStatusVMList[i].IsPass, courseStatus.CourseName)
+                    @Html.HiddenFor(model => Model.CourseStatusVMList[i].CourseId)
+                </div>
+            }
+        </div>
+
+        <p>
+            <input type="submit" value="Submit" />
+        </p>
+    </fieldset>
+}
+

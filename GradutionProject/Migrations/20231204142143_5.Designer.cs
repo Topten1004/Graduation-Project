@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GradutionProject.Migrations
 {
     [DbContext(typeof(MyContext))]
-    [Migration("20231204052117_addCourseStatus")]
-    partial class addCourseStatus
+    [Migration("20231204142143_5")]
+    partial class _5
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,7 +46,7 @@ namespace GradutionProject.Migrations
                     b.Property<int>("Hours")
                         .HasColumnType("int");
 
-                    b.Property<int>("MajorID")
+                    b.Property<int>("MajorId")
                         .HasColumnType("int");
 
                     b.Property<int>("level")
@@ -55,6 +55,28 @@ namespace GradutionProject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("GradutionProject.Models.CourseStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int")
+                        .HasColumnName("CourseId");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CourseStatus");
                 });
 
             modelBuilder.Entity("GradutionProject.Models.Major", b =>
@@ -85,6 +107,9 @@ namespace GradutionProject.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MajorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Password")
                         .IsRequired()

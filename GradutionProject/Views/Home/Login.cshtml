@@ -7,12 +7,11 @@
 @if (User.Identity.IsAuthenticated)
 {
     <script>
-        location.href = window.location.href.replace('/home/login?returnurl=', '');
+        location.href = window.location.href.replace('/home/index', '');
     </script>
 }
 else
 {
-
     <div class="row" style="justify-content:center">
         <div class="col-md-6">
             <form asp-action="Login" asp-route-returnurl="@rurl" style="margin-top:40px">
