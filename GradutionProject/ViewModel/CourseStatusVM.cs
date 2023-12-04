@@ -8,7 +8,9 @@
 
         public string CourseName { get; set; }
 
-        public int hours { get; set; }
+        public int Hours { get; set; }
+
+        public string CourseKey { get; set; }
 
         public bool IsPass { get; set; }
     }

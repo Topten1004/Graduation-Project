@@ -75,56 +75,104 @@ namespace GradutionProject.Controllers
 
         }
 
+        // Action to display the main index page
         public IActionResult Index()
         {
+            // Create a new instance of the MainVM
             MainVM mainData = new MainVM();
 
+            // Get the user ID from the claims in the current user's identity
             int userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
+            // Get the user information from the database
             var user = _context.Users.Where(x => x.Id == userId).FirstOrDefault();
 
+            // List to store remaining courses for the user
+            var remainCourse = new List<Course>();
+
+            // Get the list of course status records from the database
             var courseStatusList = _context.CourseStatusList.ToList();
 
+            // Iterate through all courses to find remaining courses for the user
             foreach (var item in _context.Courses)
             {
                 if (item.MajorId == user.MajorId)
                 {
+                    // Check if the user has passed the course
+                    bool flag = courseStatusList.Any(x => x.UserId == userId && x.CourseId == item.Id);
+
+                    // If the user has not passed the course, add it to the list of remaining courses
+                    if (flag == false)
+                    {
+                        remainCourse.Add(item);
+                    }
+                }
+            }
+
+            // Order the remaining courses by level and take the top 6
+            mainData.SuggestCourses = remainCourse.OrderBy(x => x.level).Take(6).ToList();
+
+            // Iterate through all courses again to get the course status information
+            foreach (var item in _context.Courses)
+            {
+                if (item.MajorId == user.MajorId)
+                {
+                    // Create a CourseStatusVM instance to hold course status information
                     CourseStatusVM tempItem = new CourseStatusVM();
 
+                    // Populate properties of the CourseStatusVM instance
                     tempItem.CourseId = item.Id;
                     tempItem.UserId = userId;
                     tempItem.CourseName = item.CourseName;
+                    tempItem.Hours = item.Hours;
+                    tempItem.CourseKey = item.CourseKey;
 
+                    // Check if the user has passed the course
                     bool flag = courseStatusList.Any(x => x.UserId == userId && x.CourseId == item.Id);
 
+                    // Set the IsPass property based on whether the user has passed the course
                     tempItem.IsPass = flag;
 
+                    // Add the CourseStatusVM instance to the list in the mainData
                     mainData.CourseStatusVMList.Add(tempItem);
                 }
             }
 
+            // Create a new StatusVM instance to hold status information
             mainData.StatusData = new StatusVM();
 
+            // Populate properties of the StatusVM instance
             mainData.StatusData.TotalCourse = mainData.CourseStatusVMList.Count();
             mainData.StatusData.PassedCourse = mainData.CourseStatusVMList.Where(x => x.IsPass == true).Count();
             mainData.StatusData.RemainCourse = mainData.CourseStatusVMList.Where(x => x.IsPass == false).Count();
+
+            // Calculate the pass percentage and set it in the StatusVM instance
             mainData.StatusData.PassPercent = (double)mainData.StatusData.PassedCourse / mainData.StatusData.TotalCourse * 100;
 
+            // Return the view with the mainData
             return View(mainData);
         }
 
+        // Action to handle user login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Login(User model, string returnUrl)
         {
+            // Create a new User instance
             User user = new User();
+
+            // Set the returnUrl in ViewData
             ViewData["returnUrl"] = returnUrl;
+
             try
             {
+                // Attempt to find the user in the database based on email and password
                 user = _context.Users.Where(x => x.Email == model.Email && x.Password == model.Password).FirstOrDefault();
 
-                if (user != null )
+                // If the user is found
+                if (user != null)
                 {
+                    // Create a list of claims for the user
                     var authClaims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -132,11 +180,14 @@ namespace GradutionProject.Controllers
                         new Claim(ClaimTypes.Role, "student")
                     };
 
+                    // Get JWT configuration from appsettings.json
                     var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
                     var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"]));
 
+                    // Set the expiration time for the token
                     DateTime expiration = DateTime.Now.AddSeconds(Convert.ToDouble(tokenExp));
 
+                    // Create a JWT token
                     var token = new JwtSecurityTokenHandler().CreateJwtSecurityToken(
                         issuer: config["JWT:ValidIssuer"],
                         audience: config["JWT:ValidAudience"],
@@ -147,21 +198,26 @@ namespace GradutionProject.Controllers
                         signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256),
                         encryptingCredentials: new EncryptingCredentials(authSigningKey, JwtConstants.DirectKeyUseAlg, SecurityAlgorithms.Aes256CbcHmacSha512));
 
+                    // Add the JWT token to the response cookies
                     Response.Cookies.Append(
                         "Graduation-Access-Token",
                          new JwtSecurityTokenHandler().WriteToken(token),
                          new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict, Path = "/" }
                     );
+
+                    // Redirect to the Index action in the Home controller
                     return RedirectToAction("Index", "Home");
                 }
                 else
                 {
+                    // If the user is not found, set the returnUrl and redirect to the Error action
                     if (returnUrl == null) returnUrl = Request.Path;
                     return RedirectToAction("Error", "Home", new { msgErr = "Connection refused, incorrect password or email.", urlRetour = returnUrl });
                 }
             }
             catch (Exception ex)
             {
+                // If an exception occurs, set the returnUrl and redirect to the Error action
                 if (returnUrl == null) returnUrl = Request.Path;
                 return RedirectToAction("Error", "Home", new { msgErr = ex.Message });
             }
@@ -232,23 +288,15 @@ namespace GradutionProject.Controllers
 
         public ActionResult Login(string returnUrl)
         {
-            if (User.Identity.IsAuthenticated && returnUrl == null)
-                return NotFound();
-
-            ViewData["returnUrl"] = returnUrl;
-
-            var login = Request.Query.Where(q => q.Key == "login").FirstOrDefault();
-
-            if (login.Key != null)
-                ViewData["login"] = login.Value;
-            else
-                ViewData["login"] = "";
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "Home");
+            
             return View();
         }
 
-        public IActionResult Error(string msgErr, string urlRetour)
+        public IActionResult Error(string msgErr, string urlReturn)
         {
-            return View("Error", new string[] { msgErr, urlRetour });
+            return View("Error", new string[] { msgErr, urlReturn });
         }
     }
 }

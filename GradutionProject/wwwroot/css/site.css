@@ -46,6 +46,7 @@ h2 {
     padding-bottom: 2em;
     color: #FB667A;
 }
+
 .status-table, .recommended-table {
     width: 80%;
     margin: 0 auto;
@@ -57,12 +58,12 @@ h2 {
 }
 
 
-    h2 a {
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #FB667A;
-        text-decoration: none;
-    }
+h2 a {
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #FB667A;
+    text-decoration: none;
+}
 
 .blue {
     color: #185875;
@@ -133,7 +134,7 @@ h2 {
         color: #403E10;
         font-weight: bold;
         box-shadow: #7F7C21 -1px 1px, #7F7C21 -2px 2px, #7F7C21 -3px 3px, #7F7C21 -4px 4px, #7F7C21 -5px 5px, #7F7C21 -6px 6px;
-        transform: translate3d(6px, -6px, 0);
+        transform: translate3d(0px, 0px, 0);
         transition-delay: 0s;
         transition-duration: 0.4s;
         transition-property: all;
