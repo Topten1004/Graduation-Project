@@ -1,0 +1,31 @@
+﻿<!-- Signup.cshtml -->
+@model GradutionProject.ViewModel.SignUpVM
+
+@{
+    ViewData["Title"] = "Signup";
+}
+
+<div class="row" style="justify-content:center">
+    <div class="col-md-6">
+        <form asp-action="SignUp" method="post" style="margin-top:40px">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <input asp-for="User.Email" class="form-control" placeholder="Email" />
+                <span asp-validation-for="User.Email" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-3">
+                <input asp-for="User.Password" type="password" class="form-control" placeholder="Password" />
+                <span asp-validation-for="User.Password" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-1">
+                <label for="User.MajorId">Select Major:</label>
+                <select asp-for="User.MajorId" asp-items="@Model.MajorList.Select(m => new SelectListItem { Value = m.Id.ToString(), Text = m.Name })" class="form-control">
+                    <option value="">Select a Major</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Signup" class="btn btn-primary my-2" />
+            </div>
+        </form>
+    </div>
+</div>
