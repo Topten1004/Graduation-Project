@@ -167,7 +167,7 @@ namespace GradutionProject.Controllers
             try
             {
                 // Attempt to find the user in the database based on email and password
-                user = _context.Users.Where(x => x.Email == model.Email && x.Password == model.Password).FirstOrDefault();
+                user = _context.Users.Where(x => x.Password == model.Password && x.AcademicNumber == model.AcademicNumber).FirstOrDefault();
 
                 // If the user is found
                 if (user != null)
@@ -246,6 +246,10 @@ namespace GradutionProject.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (_context.Users.Where(x => x.Email == viewModel.User.Email || x.AcademicNumber == viewModel.User.AcademicNumber).Any())
+                    return RedirectToAction("Error", "Home", new { msgErr = "Same email and academic exists.", urlRetour = string.Empty });
+
+
                 viewModel.User.UserRole = "Student";
                 _context.Users.Add(viewModel.User);
                 _context.SaveChanges();
@@ -278,7 +282,7 @@ namespace GradutionProject.Controllers
                      new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict }
                 );
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Login", "Home");
             }
 
             // If the model is not valid, reload the majors and return to the signup page with validation errors

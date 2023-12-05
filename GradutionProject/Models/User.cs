@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GradutionProject.Models
 {
-    [Table("Users")] // Move the Table attribute here
+    [Table("Users")] 
+    // Move the Table attribute here
     public class User
     {
         public User()
